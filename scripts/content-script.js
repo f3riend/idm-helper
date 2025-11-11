@@ -57,4 +57,24 @@ observer.observe(document.body, {
   subtree: true,
 });
 
+// Sayfaya injected.js enjekte et
+(function inject() {
+  const script = document.createElement("script");
+  script.src = chrome.runtime.getURL("scripts/injected.js");
+  script.onload = () => script.remove();
+  (document.head || document.documentElement).appendChild(script);
+})();
+
+// Sayfa → content-script mesaj yakalayıcı
+window.addEventListener("message", (event) => {
+  if (event.source !== window) return;
+  const data = event.data;
+  if (data.type === "VIDEO_URL_FOUND") {
+    chrome.runtime.sendMessage({
+      action: "videoDetectedInjected",
+      url: data.url,
+    });
+  }
+});
+
 console.log("✅ Embed detector aktif");

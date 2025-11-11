@@ -163,6 +163,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     videos[tabId] = [];
     chrome.action.setBadgeText({ text: "", tabId });
     sendResponse({ success: true });
+  } else if (action === "videoDetectedInjected") {
+    const url = request.url;
+    const videoInfo = detectVideoUrl(url);
+    if (!videoInfo) return;
+
+    const tabId = sender?.tab?.id;
+    if (!tabId) return;
+
+    if (!videos[tabId]) videos[tabId] = [];
+    if (videos[tabId].some((v) => v.url === url)) return;
+
+    videos[tabId].push({
+      url,
+      type: videoInfo.type,
+      format: videoInfo.format,
+      quality: videoInfo.quality,
+      size: videoInfo.size,
+      timestamp: Date.now(),
+    });
+
+    updateBadge(tabId);
   }
 
   return true;
