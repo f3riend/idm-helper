@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "IDM Helper",
-  "version": "1.0",
-  "description": "",
+  "name": "AVG Manager",
+  "version": "2.0",
+  "description": "Advanced Video Grub Manager",
 
   "permissions": [
     "webRequest",
@@ -10,10 +10,10 @@
     "activeTab",
     "downloads",
     "tabs",
-    "debugger",
-    "downloads"
+    "scripting"
   ],
   "host_permissions": ["<all_urls>"],
+
   "background": {
     "service_worker": "background.js"
   },
@@ -22,9 +22,18 @@
     {
       "matches": ["<all_urls>"],
       "js": ["scripts/content-script.js"],
-      "run_at": "document_idle"
+      "run_at": "document_start",
+      "all_frames": true
     }
   ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["scripts/injected.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
   "action": {
     "default_popup": "popup/popup.html",
     "default_title": "IDM Helper"

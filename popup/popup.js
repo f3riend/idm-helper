@@ -11,13 +11,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("clearBtn").addEventListener("click", clearVideos);
 });
 
+function normalizeVideoUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    // Eğer JWPlayer iç linki ve içinde 'mu=' parametresi varsa çöz
+    if (urlObj.searchParams.has("mu")) {
+      const decoded = decodeURIComponent(urlObj.searchParams.get("mu"));
+      return decoded;
+    }
+  } catch (e) {
+    console.warn("URL parse hatası:", e);
+  }
+  return url;
+}
+
 async function loadVideos() {
   const response = await chrome.runtime.sendMessage({
     action: "getVideos",
     tabId: currentTab.id,
   });
 
-  displayVideos(response.videos || []);
+  let videos = response.videos || [];
+
+  // 🔧 Burada URL'leri normalize et
+  videos = videos.map((v) => ({
+    ...v,
+    url: normalizeVideoUrl(v.url),
+  }));
+
+  displayVideos(videos);
 }
 
 function displayVideos(videos) {
