@@ -1,5 +1,7 @@
 # Advanced Video Grub Manager
 
+# IN DEVELOPMENT PROGRESS JUST A PROTOTYPE I'LL UPDATE LATER KEEP IT MIND.
+
 Find and capture media files on websites and download them for yourself
 
 ### Destekliyor
