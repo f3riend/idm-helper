@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "IDM Helper",
+  "version": "1.0",
+  "description": "",
+
+  "permissions": [
+    "webRequest",
+    "storage",
+    "activeTab",
+    "downloads",
+    "tabs",
+    "debugger",
+    "downloads"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["scripts/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "IDM Helper"
+  }
+}
