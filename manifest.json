@@ -10,7 +10,8 @@
     "activeTab",
     "downloads",
     "tabs",
-    "scripting"
+    "scripting",
+    "debugger"
   ],
   "host_permissions": ["<all_urls>"],
 

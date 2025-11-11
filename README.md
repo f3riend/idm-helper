@@ -11,19 +11,28 @@ Find and capture media files on websites and download them for yourself
 - Voe
 - HDVid
 - Filemoon
+- UQload
+- AMATERASU (BETA)
+- Vidrame
 
-### Desteklemiyor
+### Düzenlenmesi gerek
+
+- OK.ru
+- DailyMotion
+- Mail.ru
+
+### Ne yapilacak kestiremiyorum
+
+- Rapidrame
+
+### Desteklemiyor video bulmuyor
 
 - Aincrad (Reklamsiz)
 - Abyss
-- UQload
 - MP4Upload
 - GDrive
 - JW Player
 - Close
-- Rapidme
-
-### Sorun Veriyor
-
-- Mail.ru
-- DailyMotion
+- CLONE
+- DBX Pro
+- Mac

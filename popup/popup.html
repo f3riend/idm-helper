@@ -1,19 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="popup.css" />
+    <title>IDM Helper</title>
   </head>
   <body>
     <div class="header">
-      <h3>Video Grabber</h3>
-      <button id="clearBtn">Temizle</button>
+      <h3>🎬 IDM Helper</h3>
+      <div class="header-actions">
+        <button id="refreshBtn" class="btn-icon" title="Yenile">🔄</button>
+        <button id="clearBtn" class="btn-header">Temizle</button>
+      </div>
     </div>
 
-    <div id="videoList" class="video-list"></div>
+    <div class="filters">
+      <select id="filterType" class="filter-select">
+        <option value="all">Tüm Tipler</option>
+        <option value="mp4">MP4</option>
+        <option value="m3u8">HLS (m3u8)</option>
+        <option value="mpd">DASH</option>
+        <option value="webm">WebM</option>
+        <option value="blob">Blob</option>
+        <option value="mse">MediaSource</option>
+      </select>
+
+      <select id="filterQuality" class="filter-select">
+        <option value="all">Tüm Kaliteler</option>
+        <option value="4k">4K</option>
+        <option value="1080p">1080p</option>
+        <option value="720p">720p</option>
+        <option value="480p">480p</option>
+        <option value="360p">360p</option>
+      </select>
+    </div>
+
+    <div id="videoList" class="video-list">
+      <div class="empty">
+        <div class="empty-icon">📹</div>
+        <p>Henüz video bulunamadı</p>
+        <small>Bir videoyu oynatın veya sayfayı yenileyin</small>
+      </div>
+    </div>
 
     <div class="footer">
-      <span id="status">Videoları yakalamak için sayfayı yenile</span>
+      <span id="status">Hazır</span>
     </div>
 
     <script src="popup.js"></script>

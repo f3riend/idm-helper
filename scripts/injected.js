@@ -1,53 +1,194 @@
-// 🔥 Video kaynaklarını tespit etmek için sayfa içine enjekte edilen kod
-// (JWPlayer, blob, Aincrad gibi fetch tabanlı oynatıcıları yakalar)
+// injected.js - Page context'te çalışan hook'lar
 
 (function () {
-  const foundUrls = new Set();
+  "use strict";
 
-  // Sayfa ile content script arasında iletişim
-  function sendVideo(url) {
-    if (!url || foundUrls.has(url)) return;
-    foundUrls.add(url);
-    window.postMessage({ type: "VIDEO_URL_FOUND", url }, "*");
+  // Mesaj gönder
+  function notify(payload) {
+    try {
+      window.postMessage(
+        {
+          __idm_helper: true,
+          payload,
+        },
+        "*"
+      );
+    } catch (err) {
+      console.error("Notify error:", err);
+    }
   }
 
-  // 1️⃣ fetch() çağrılarını yakala
-  const origFetch = window.fetch;
-  window.fetch = async function (...args) {
-    try {
-      const [input] = args;
-      const url = typeof input === "string" ? input : input.url;
+  // 1. URL.createObjectURL hook - Blob video'ları yakala
+  const originalCreateObjectURL = URL.createObjectURL;
+  URL.createObjectURL = function (obj) {
+    const url = originalCreateObjectURL.call(this, obj);
 
-      if (/\.(m3u8|mpd|mp4|webm|mkv)(\?|$)/i.test(url)) {
-        sendVideo(url);
+    if (obj instanceof Blob) {
+      // Video blob'u mu kontrol et
+      if (obj.type && obj.type.startsWith("video/")) {
+        // Sadece anlamlı boyutlu blob'ları bildir (>100KB)
+        if (obj.size > 100000) {
+          // Küçük blob'lar için base64'e çevir (< 10MB)
+          if (obj.size < 10 * 1024 * 1024) {
+            const reader = new FileReader();
+            reader.onload = function () {
+              notify({
+                type: "blob",
+                blobUrl: url,
+                mimeType: obj.type,
+                size: obj.size,
+                data: reader.result,
+              });
+            };
+            reader.readAsDataURL(obj);
+          } else {
+            // Büyük dosyalar için sadece metadata
+            notify({
+              type: "blob",
+              blobUrl: url,
+              mimeType: obj.type,
+              size: obj.size,
+            });
+          }
+        }
       }
-
-      const response = await origFetch.apply(this, args);
-      return response;
-    } catch (err) {
-      return origFetch.apply(this, args);
     }
+
+    return url;
   };
 
-  // 2️⃣ XMLHttpRequest çağrılarını yakala
-  const origOpen = XMLHttpRequest.prototype.open;
-  XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-    try {
+  // 2. MediaSource hook - MSE kullanımını yakala
+  const OriginalMediaSource = window.MediaSource;
+  if (OriginalMediaSource) {
+    const originalAddSourceBuffer =
+      OriginalMediaSource.prototype.addSourceBuffer;
+
+    OriginalMediaSource.prototype.addSourceBuffer = function (mimeType) {
+      notify({
+        type: "mediaSource",
+        mimeType: mimeType,
+      });
+
+      return originalAddSourceBuffer.call(this, mimeType);
+    };
+  }
+
+  // 3. HTMLVideoElement.src setter hook
+  const videoProto = HTMLVideoElement.prototype;
+  const srcDescriptor = Object.getOwnPropertyDescriptor(videoProto, "src");
+
+  if (srcDescriptor && srcDescriptor.set) {
+    Object.defineProperty(videoProto, "src", {
+      set: function (value) {
+        if (value && typeof value === "string") {
+          notify({
+            type: "videoElement",
+            url: value,
+          });
+        }
+        return srcDescriptor.set.call(this, value);
+      },
+      get: srcDescriptor.get,
+      configurable: true,
+      enumerable: true,
+    });
+  }
+
+  // 4. HTMLVideoElement.setAttribute hook
+  const originalSetAttribute = videoProto.setAttribute;
+  videoProto.setAttribute = function (name, value) {
+    if (name === "src" && value) {
+      notify({
+        type: "videoElement",
+        url: value,
+      });
+    }
+    return originalSetAttribute.call(this, name, value);
+  };
+
+  // 5. Fetch hook
+  const originalFetch = window.fetch;
+  window.fetch = function (input, init) {
+    const url = typeof input === "string" ? input : input && input.url;
+
+    if (url && typeof url === "string") {
+      // Video URL pattern'leri
       if (/\.(m3u8|mpd|mp4|webm|mkv)(\?|$)/i.test(url)) {
-        sendVideo(url);
+        notify({
+          type: "fetch",
+          url: url,
+        });
       }
-    } catch (e) {}
-    return origOpen.call(this, method, url, ...rest);
-  };
-
-  // 3️⃣ MediaSource (blob) tespiti
-  const origAddSourceBuffer = MediaSource.prototype.addSourceBuffer;
-  MediaSource.prototype.addSourceBuffer = function (mimeType) {
-    if (/video|mp4|webm|mp2t/i.test(mimeType)) {
-      sendVideo(`blob:media-source:${mimeType}`);
     }
-    return origAddSourceBuffer.call(this, mimeType);
+
+    return originalFetch.apply(this, arguments);
   };
 
-  console.log("✅ injected.js aktif – fetch/XHR/MediaSource dinleniyor");
+  // 6. XMLHttpRequest hook
+  const XHRProto = XMLHttpRequest.prototype;
+  const originalOpen = XHRProto.open;
+  const originalSend = XHRProto.send;
+
+  XHRProto.open = function (method, url) {
+    this.__idm_url = url;
+    return originalOpen.apply(this, arguments);
+  };
+
+  XHRProto.send = function () {
+    if (this.__idm_url && typeof this.__idm_url === "string") {
+      // Video URL pattern'leri
+      if (/\.(m3u8|mpd|mp4|webm|mkv|ts|m4s)(\?|$)/i.test(this.__idm_url)) {
+        notify({
+          type: "xhr",
+          url: this.__idm_url,
+        });
+      }
+    }
+    return originalSend.apply(this, arguments);
+  };
+
+  // 7. Video element observer - mevcut videoları yakala
+  function scanExistingVideos() {
+    const videos = document.querySelectorAll("video");
+    videos.forEach((video) => {
+      const src = video.currentSrc || video.src;
+      if (src && !src.startsWith("blob:")) {
+        notify({
+          type: "videoElement",
+          url: src,
+        });
+      }
+    });
+  }
+
+  // Sayfa yüklendikten sonra tara
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scanExistingVideos);
+  } else {
+    scanExistingVideos();
+  }
+
+  // Mutation observer - yeni video elementleri
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.tagName === "VIDEO") {
+          const src = node.currentSrc || node.src;
+          if (src && !src.startsWith("blob:")) {
+            notify({
+              type: "videoElement",
+              url: src,
+            });
+          }
+        }
+      });
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+
+  console.log("✅ IDM Helper hooks installed");
 })();
