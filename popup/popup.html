@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Vault</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+      <div class="header">
+    <h1>🎬 Video Grabber</h1>
+    <button class="clear-btn" id="clearBtn">Temizle</button>
+  </div>
+
+  <div class="container" id="container">
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 7l-7 5 7 5V7z"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      </svg>
+      <p>Henüz video bulunamadı</p>
+      <p style="font-size: 11px; margin-top: 5px;">Video içeren bir sayfaya gidin</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="footer">
+    Tespit edilen videolar otomatik olarak burada görünecek
+  </div>
+    <script type="module" src="./js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+    "manifest_version": 3,
+    "name": "Media Vault",
+    "version": "1.0",
+    "permissions": [
+        "webRequest",
+        "storage",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "scripting",
+        "debugger"
+    ],
+    "host_permissions": ["<all_urls>","http://127.0.0.1:8000/*"],
+
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": [
+            "scripts/services/keybindings.js",    
+            "scripts/services/radial-menu.js",
+            "scripts/core/logger.js",  
+            "scripts/content-script.js"
+            ],
+            "run_at": "document_start",
+            "all_frames": true
+        }
+        ]
+    ,
+
+    "web_accessible_resources": [
+        {
+            "resources": ["scripts/injected.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+
+    "action": {
+        "default_popup": "popup/popup.html",
+        "default_title": "Media Vault"
+    }
+}
