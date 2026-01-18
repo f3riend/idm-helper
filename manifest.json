@@ -40,6 +40,16 @@
 
     "action": {
         "default_popup": "popup/popup.html",
-        "default_title": "Media Vault"
+        "default_title": "Media Vault",
+        "default_icon": {
+            "16": "icons/media-vault.png",
+            "48": "icons/media-vault.png",
+            "128": "icons/media-vault.png"
+        }
+    },
+     "icons": {
+        "16": "icons/media-vault.png",
+        "48": "icons/media-vault.png",
+        "128": "icons/media-vault.png"
     }
 }
